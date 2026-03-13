@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  password     String
+  name         String
+  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
+  categories   Category[]
+  transactions Transaction[]
+  savingGoals  SavingGoal[]
+}
+
+model Category {
+  id           String          @id @default(uuid())
+  name         String
+  type         TransactionType
+  userId       String
+  createdAt    DateTime        @default(now()) @db.Timestamptz(6)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          String          @id @default(uuid())
+  amount      Decimal         @db.Decimal(10, 2)
+  description String?
+  type        TransactionType
+  date        DateTime        @db.Timestamptz(6)
+  categoryId  String
+  userId      String
+  createdAt   DateTime        @default(now()) @db.Timestamptz(6)
+  category    Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SavingGoal {
+  id            String    @id @default(uuid())
+  name          String
+  targetAmount  Decimal   @db.Decimal(10, 2)
+  currentAmount Decimal   @db.Decimal(10, 2) @default(0)
+  deadline      DateTime? @db.Timestamptz(6)
+  userId        String
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
