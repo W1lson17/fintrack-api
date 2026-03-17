@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js"
+import { formatDecimal } from "../lib/formatters.js"
 import type { CreateTransactionDto, QueryTransactionsDto } from "../schemas/transaction.schemas.js"
 
 /**
@@ -20,11 +21,7 @@ export const createTransaction = async (data: CreateTransactionDto, userId: stri
       date: data.date ?? new Date()
     }
   })
-
-  return {
-    ...transaction,
-    amount: Number(transaction.amount)
-  }
+  return { ...transaction, amount: formatDecimal(transaction.amount) }
 }
 
 /**
@@ -43,11 +40,7 @@ export const findTransactionsByUserId = async (userId: string, filters?: QueryTr
     // Include category details in the response
     include: { category: true }
   })
-
-  return transactions.map((transaction) => ({
-    ...transaction,
-    amount: Number(transaction.amount)
-  }))
+  return transactions.map(t => ({ ...t, amount: formatDecimal(t.amount) }))
 }
 
 /**
@@ -58,14 +51,9 @@ export const findTransactionById = async (id: string) => {
     where: { id },
     include: { category: true }
   })
-
   // Return null if transaction not found — service handles the not found error
   if (!transaction) return null
-
-  return {
-    ...transaction,
-    amount: Number(transaction.amount)
-  }
+  return { ...transaction, amount: formatDecimal(transaction.amount) }
 }
 
 /**
