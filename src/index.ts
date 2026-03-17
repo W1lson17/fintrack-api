@@ -1,6 +1,7 @@
 import "dotenv/config"
 import express, { type Express } from "express"
 import authRouter from "./routes/auth.routes.js"
+import categoryRouter from "./routes/category.routes.js"
 import { errorHandler } from "./middlewares/errorHandler.js"
 
 process.on('uncaughtException', (err) => {
@@ -15,6 +16,7 @@ app.use(express.json())
 
 // Rutas
 app.use("/api/auth", authRouter)
+app.use("/api/categories", categoryRouter)
 
 // Middlewares
 // Error handling
