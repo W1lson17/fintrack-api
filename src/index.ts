@@ -11,6 +11,7 @@ import authRouter from "./routes/auth.routes.js"
 import categoryRouter from "./routes/category.routes.js"
 import transactionRouter from "./routes/transaction.routes.js"
 import savingGoalsRouter from "./routes/saving-goal.routes.js"
+import reportsRouter from "./routes/report.routes.js"
 import { errorHandler } from "./middlewares/errorHandler.js"
 
 const app: Express = express()
@@ -27,6 +28,7 @@ app.use("/api/auth", authRouter)
 app.use("/api/categories", categoryRouter)
 app.use("/api/transactions", transactionRouter)
 app.use("/api/saving-goals", savingGoalsRouter)
+app.use("/api/reports", reportsRouter)
 
 // 404 handler — must be registered after all routes
 app.use((_req, res) => {
