@@ -46,8 +46,10 @@ app.use((_req, res) => {
  */
 app.use(errorHandler)
 
-app.listen(PORT, () => {
+// Iniciar servidor
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
 
+export { server }
 export default app

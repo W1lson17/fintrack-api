@@ -63,7 +63,8 @@ export const updateSavingGoalAmount = async (id: string, data: UpdateSavingGoalD
  * Deletes a saving goal by its ID
  */
 export const deleteSavingGoalById = async (id: string) => {
-  return prisma.savingGoal.delete({
+  const goal = await prisma.savingGoal.delete({
     where: { id }
   })
+  return { ...goal, targetAmount: formatDecimal(goal.targetAmount), currentAmount: formatDecimal(goal.currentAmount) }
 }
