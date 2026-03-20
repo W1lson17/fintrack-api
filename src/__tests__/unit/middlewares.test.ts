@@ -21,13 +21,13 @@ const mockRequest = (overrides = {}): Partial<Request> => ({
 
 const mockResponse = (): Partial<Response> => {
   const res: Partial<Response> = {}
-  res.status = jest.fn().mockReturnValue(res) as any
-  res.json = jest.fn().mockReturnValue(res) as any
-  res.send = jest.fn().mockReturnValue(res) as any
+  res.status = vi.fn().mockReturnValue(res) as any
+  res.json = vi.fn().mockReturnValue(res) as any
+  res.send = vi.fn().mockReturnValue(res) as any
   return res
 }
 
-const mockNext = (): NextFunction => jest.fn() as any
+const mockNext = (): NextFunction => vi.fn() as any
 
 // ─── validateRequest ────────────────────────────────────────────────────────
 

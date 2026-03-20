@@ -10,23 +10,16 @@
 import request from "supertest"
 import app, { server } from "../../index.js"
 import { prisma } from "../../lib/prisma.js"
+import { createTestUser } from "../utils/auth.js"
 
 describe("Category Routes", () => {
   let token: string
 
-  // Use unique email to avoid conflicts with other test suites
-  const testUser = {
-    name: "Category Test User",
-    email: "category-test@test.com",
-    password: "Test1234!"
-  }
-
   // Register once before all tests — reuse token across all tests
   beforeAll(async () => {
-    const response = await request(app)
-      .post("/api/auth/register")
-      .send(testUser)
-    token = response.body.token
+    // Generate unique email for test isolation
+    const user = await createTestUser({ email: `category-${Date.now()}@test.com` })
+    token = user.token
   })
 
   afterAll(async () => {

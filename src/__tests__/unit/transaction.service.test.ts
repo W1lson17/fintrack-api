@@ -7,15 +7,15 @@
  * Pattern: AAA (Arrange, Act, Assert)
  */
 
-jest.mock("../../repositories/transaction.repository.js", () => ({
-  createTransaction: jest.fn(),
-  findTransactionsByUserId: jest.fn(),
-  findTransactionById: jest.fn(),
-  deleteTransactionById: jest.fn()
+vi.mock("../../repositories/transaction.repository.js", () => ({
+  createTransaction: vi.fn(),
+  findTransactionsByUserId: vi.fn(),
+  findTransactionById: vi.fn(),
+  deleteTransactionById: vi.fn()
 }))
 
-jest.mock("../../repositories/category.repository.js", () => ({
-  findCategoryById: jest.fn()
+vi.mock("../../repositories/category.repository.js", () => ({
+  findCategoryById: vi.fn()
 }))
 
 import {
@@ -55,7 +55,7 @@ const mockTransaction = {
 
 describe("TransactionService", () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe("createTransactionService", () => {
@@ -69,7 +69,7 @@ describe("TransactionService", () => {
 
     it("should throw AppError if category not found", async () => {
       // Arrange
-      jest.mocked(findCategoryById).mockResolvedValue(null)
+      vi.mocked(findCategoryById).mockResolvedValue(null)
 
       // Act & Assert
       await expect(createTransactionService(validData, userId))
@@ -79,7 +79,7 @@ describe("TransactionService", () => {
 
     it("should throw AppError if category belongs to another user", async () => {
       // Arrange
-      jest.mocked(findCategoryById).mockResolvedValue({
+      vi.mocked(findCategoryById).mockResolvedValue({
         ...mockCategory,
         userId: "different-user"
       })
@@ -92,8 +92,8 @@ describe("TransactionService", () => {
 
     it("should create and return transaction on success", async () => {
       // Arrange
-      jest.mocked(findCategoryById).mockResolvedValue(mockCategory)
-      jest.mocked(createTransaction).mockResolvedValue(mockTransaction)
+      vi.mocked(findCategoryById).mockResolvedValue(mockCategory)
+      vi.mocked(createTransaction).mockResolvedValue(mockTransaction)
 
       // Act
       const result = await createTransactionService(validData, userId)
@@ -107,7 +107,7 @@ describe("TransactionService", () => {
   describe("getTransactionsService", () => {
     it("should return all transactions for a user", async () => {
       // Arrange
-      jest.mocked(findTransactionsByUserId).mockResolvedValue([mockTransaction])
+      vi.mocked(findTransactionsByUserId).mockResolvedValue([mockTransaction])
 
       // Act
       const result = await getTransactionsService("user-123")
@@ -121,7 +121,7 @@ describe("TransactionService", () => {
   describe("getTransactionByIdService", () => {
     it("should throw AppError if transaction not found", async () => {
       // Arrange
-      jest.mocked(findTransactionById).mockResolvedValue(null)
+      vi.mocked(findTransactionById).mockResolvedValue(null)
 
       // Act & Assert
       await expect(getTransactionByIdService("transaction-123", "user-123"))
@@ -130,7 +130,7 @@ describe("TransactionService", () => {
 
     it("should throw AppError if transaction belongs to another user", async () => {
       // Arrange
-      jest.mocked(findTransactionById).mockResolvedValue({
+      vi.mocked(findTransactionById).mockResolvedValue({
         ...mockTransaction,
         userId: "different-user"
       })
@@ -142,7 +142,7 @@ describe("TransactionService", () => {
 
     it("should return transaction if found and owned by user", async () => {
       // Arrange
-      jest.mocked(findTransactionById).mockResolvedValue(mockTransaction)
+      vi.mocked(findTransactionById).mockResolvedValue(mockTransaction)
 
       // Act
       const result = await getTransactionByIdService("transaction-123", "user-123")
@@ -155,7 +155,7 @@ describe("TransactionService", () => {
   describe("deleteTransactionService", () => {
     it("should throw AppError if transaction not found", async () => {
       // Arrange
-      jest.mocked(findTransactionById).mockResolvedValue(null)
+      vi.mocked(findTransactionById).mockResolvedValue(null)
 
       // Act & Assert
       await expect(deleteTransactionService("transaction-123", "user-123"))
@@ -164,7 +164,7 @@ describe("TransactionService", () => {
 
     it("should throw AppError if transaction belongs to another user", async () => {
       // Arrange
-      jest.mocked(findTransactionById).mockResolvedValue({
+      vi.mocked(findTransactionById).mockResolvedValue({
         ...mockTransaction,
         userId: "different-user"
       })
@@ -176,8 +176,8 @@ describe("TransactionService", () => {
 
     it("should delete transaction if found and owned by user", async () => {
       // Arrange
-      jest.mocked(findTransactionById).mockResolvedValue(mockTransaction)
-      jest.mocked(deleteTransactionById).mockResolvedValue(mockTransaction)
+      vi.mocked(findTransactionById).mockResolvedValue(mockTransaction)
+      vi.mocked(deleteTransactionById).mockResolvedValue(mockTransaction)
 
       // Act
       await deleteTransactionService("transaction-123", "user-123")
