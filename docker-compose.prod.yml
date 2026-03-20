@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:18.3-alpine
+    container_name: fintrack-postgres-prod
+    env_file:
+      - .env.production
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fintrack-api-prod
+    env_file:
+      - .env.production
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_prod_data:

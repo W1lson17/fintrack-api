@@ -15,9 +15,9 @@
     "db:studio": "prisma studio",
     "db:reset": "dotenv -e .env -- prisma migrate reset",
     "db:reset:test": "dotenv -e .env.test -- prisma migrate reset",
-    "test": "dotenv -e .env.test -- prisma migrate reset --force && dotenv -e .env.test -- jest",
-    "test:watch": "dotenv -e .env.test -- jest --watch",
-    "test:coverage": "dotenv -e .env.test -- prisma migrate reset --force && dotenv -e .env.test -- jest --coverage"
+    "tests": "dotenv -e .env.test -- prisma migrate reset --force && dotenv -e .env.test -- jest",
+    "tests:watch": "dotenv -e .env.test -- jest --watch",
+    "tests:coverage": "dotenv -e .env.test -- prisma migrate reset --force && dotenv -e .env.test -- jest --coverage"
   },
   "keywords": [],
   "author": "",
