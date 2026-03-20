@@ -7,11 +7,12 @@
  * Pattern: AAA (Arrange, Act, Assert)
  */
 
-jest.mock("../../lib/prisma.js", () => ({
+// Mock prisma BEFORE imports — vi.mock is hoisted
+vi.mock("../../lib/prisma.js", () => ({
   prisma: {
     transaction: {
-      aggregate: jest.fn(),
-      findMany: jest.fn()
+      aggregate: vi.fn(),
+      findMany: vi.fn()
     }
   }
 }))
@@ -21,13 +22,13 @@ import { prisma } from "../../lib/prisma.js"
 
 describe("ReportService", () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe("getMonthlySummaryService", () => {
     it("should return summary with zeros when no transactions exist", async () => {
       // Arrange — simulate no transactions
-      jest.mocked(prisma.transaction.aggregate)
+      vi.mocked(prisma.transaction.aggregate)
         .mockResolvedValueOnce({ _sum: { amount: null } } as any)
         .mockResolvedValueOnce({ _sum: { amount: null } } as any)
 
@@ -46,7 +47,7 @@ describe("ReportService", () => {
 
     it("should return correct summary with transactions", async () => {
       // Arrange
-      jest.mocked(prisma.transaction.aggregate)
+      vi.mocked(prisma.transaction.aggregate)
         .mockResolvedValueOnce({ _sum: { amount: 5000 } } as any)
         .mockResolvedValueOnce({ _sum: { amount: 2000 } } as any)
 
@@ -63,7 +64,7 @@ describe("ReportService", () => {
   describe("getCategoryReportService", () => {
     it("should return empty array when no transactions exist", async () => {
       // Arrange
-      jest.mocked(prisma.transaction.findMany).mockResolvedValue([])
+      vi.mocked(prisma.transaction.findMany).mockResolvedValue([])
 
       // Act
       const result = await getCategoryReportService("user-123", { month: 3, year: 2026 })
@@ -74,7 +75,7 @@ describe("ReportService", () => {
 
     it("should return spending grouped by category sorted by highest spending", async () => {
       // Arrange
-      jest.mocked(prisma.transaction.findMany).mockResolvedValue([
+      vi.mocked(prisma.transaction.findMany).mockResolvedValue([
         {
           id: "t1",
           amount: 1500,

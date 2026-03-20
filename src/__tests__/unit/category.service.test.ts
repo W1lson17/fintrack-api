@@ -7,12 +7,13 @@
  * Pattern: AAA (Arrange, Act, Assert)
  */
 
-jest.mock("../../repositories/category.repository.js", () => ({
-  createCategory: jest.fn(),
-  findCategoryByNameAndType: jest.fn(),
-  findCategoriesByUserId: jest.fn(),
-  findCategoryById: jest.fn(),
-  deleteCategoryById: jest.fn()
+// Mock repositories BEFORE imports — vi.mock is hoisted to top of file
+vi.mock("../../repositories/category.repository.js", () => ({
+  createCategory: vi.fn(),
+  findCategoryByNameAndType: vi.fn(),
+  findCategoriesByUserId: vi.fn(),
+  findCategoryById: vi.fn(),
+  deleteCategoryById: vi.fn()
 }))
 
 import {
@@ -40,7 +41,7 @@ const mockCategory = {
 
 describe("CategoryService", () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe("createCategoryService", () => {
@@ -49,7 +50,7 @@ describe("CategoryService", () => {
 
     it("should throw AppError if category already exists", async () => {
       // Arrange
-      jest.mocked(findCategoryByNameAndType).mockResolvedValue(mockCategory)
+      vi.mocked(findCategoryByNameAndType).mockResolvedValue(mockCategory)
 
       // Act & Assert
       await expect(createCategoryService(validData, userId)).rejects.toThrow(AppError)
@@ -58,8 +59,8 @@ describe("CategoryService", () => {
 
     it("should create and return category on success", async () => {
       // Arrange
-      jest.mocked(findCategoryByNameAndType).mockResolvedValue(null)
-      jest.mocked(createCategory).mockResolvedValue(mockCategory)
+      vi.mocked(findCategoryByNameAndType).mockResolvedValue(null)
+      vi.mocked(createCategory).mockResolvedValue(mockCategory)
 
       // Act
       const result = await createCategoryService(validData, userId)
@@ -73,7 +74,7 @@ describe("CategoryService", () => {
   describe("getCategoriesService", () => {
     it("should return all categories for a user", async () => {
       // Arrange
-      jest.mocked(findCategoriesByUserId).mockResolvedValue([mockCategory])
+      vi.mocked(findCategoriesByUserId).mockResolvedValue([mockCategory])
 
       // Act
       const result = await getCategoriesService("user-123")
@@ -87,7 +88,7 @@ describe("CategoryService", () => {
   describe("getCategoryByIdService", () => {
     it("should throw AppError if category not found", async () => {
       // Arrange
-      jest.mocked(findCategoryById).mockResolvedValue(null)
+      vi.mocked(findCategoryById).mockResolvedValue(null)
 
       // Act & Assert
       await expect(getCategoryByIdService("category-123", "user-123"))
@@ -96,7 +97,7 @@ describe("CategoryService", () => {
 
     it("should throw AppError if category belongs to another user", async () => {
       // Arrange
-      jest.mocked(findCategoryById).mockResolvedValue({
+      vi.mocked(findCategoryById).mockResolvedValue({
         ...mockCategory,
         userId: "different-user"
       })
@@ -108,7 +109,7 @@ describe("CategoryService", () => {
 
     it("should return category if found and owned by user", async () => {
       // Arrange
-      jest.mocked(findCategoryById).mockResolvedValue(mockCategory)
+      vi.mocked(findCategoryById).mockResolvedValue(mockCategory)
 
       // Act
       const result = await getCategoryByIdService("category-123", "user-123")
@@ -121,7 +122,7 @@ describe("CategoryService", () => {
   describe("deleteCategoryService", () => {
     it("should throw AppError if category not found", async () => {
       // Arrange
-      jest.mocked(findCategoryById).mockResolvedValue(null)
+      vi.mocked(findCategoryById).mockResolvedValue(null)
 
       // Act & Assert
       await expect(deleteCategoryService("category-123", "user-123"))
@@ -130,7 +131,7 @@ describe("CategoryService", () => {
 
     it("should throw AppError if category belongs to another user", async () => {
       // Arrange
-      jest.mocked(findCategoryById).mockResolvedValue({
+      vi.mocked(findCategoryById).mockResolvedValue({
         ...mockCategory,
         userId: "different-user"
       })
@@ -142,8 +143,8 @@ describe("CategoryService", () => {
 
     it("should delete category if found and owned by user", async () => {
       // Arrange
-      jest.mocked(findCategoryById).mockResolvedValue(mockCategory)
-      jest.mocked(deleteCategoryById).mockResolvedValue(undefined as any)
+      vi.mocked(findCategoryById).mockResolvedValue(mockCategory)
+      vi.mocked(deleteCategoryById).mockResolvedValue(mockCategory)
 
       // Act
       await deleteCategoryService("category-123", "user-123")

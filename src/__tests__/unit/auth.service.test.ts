@@ -7,11 +7,11 @@
  * Pattern: AAA (Arrange, Act, Assert)
  */
 
-// Mock repositories BEFORE imports — jest.mock is hoisted to top of file
+// Mock repositories BEFORE imports — vi.mock is hoisted to top of file
 // This prevents Prisma client from loading during tests
-jest.mock("../../repositories/auth.repository.js", () => ({
-  findUserByEmail: jest.fn(),
-  createUser: jest.fn()
+vi.mock("../../repositories/auth.repository.js", () => ({
+  findUserByEmail: vi.fn(),
+  createUser: vi.fn()
 }))
 
 import { register, login } from "../../services/auth.service.js"
@@ -21,7 +21,7 @@ import { AppError } from "../../lib/AppError.js"
 describe("AuthService", () => {
   // Clear all mocks before each test to avoid state contamination
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe("register", () => {
@@ -33,7 +33,7 @@ describe("AuthService", () => {
 
     it("should throw AppError if email already exists", async () => {
       // Arrange — simulate existing user in DB
-      jest.mocked(findUserByEmail).mockResolvedValue({
+      vi.mocked(findUserByEmail).mockResolvedValue({
         id: "123",
         email: validData.email,
         name: validData.name,
@@ -47,8 +47,8 @@ describe("AuthService", () => {
 
     it("should return JWT token on successful registration", async () => {
       // Arrange — simulate no existing user
-      jest.mocked(findUserByEmail).mockResolvedValue(null)
-      jest.mocked(createUser).mockResolvedValue({
+      vi.mocked(findUserByEmail).mockResolvedValue(null)
+      vi.mocked(createUser).mockResolvedValue({
         id: "123",
         email: validData.email,
         name: validData.name,
@@ -68,7 +68,7 @@ describe("AuthService", () => {
   describe("login", () => {
     it("should throw AppError if user does not exist", async () => {
       // Arrange
-      jest.mocked(findUserByEmail).mockResolvedValue(null)
+      vi.mocked(findUserByEmail).mockResolvedValue(null)
 
       // Act & Assert
       await expect(login({ email: "notfound@test.com", password: "Test1234!" }))
@@ -77,7 +77,7 @@ describe("AuthService", () => {
 
     it("should throw AppError if password is incorrect", async () => {
       // Arrange
-      jest.mocked(findUserByEmail).mockResolvedValue({
+      vi.mocked(findUserByEmail).mockResolvedValue({
         id: "123",
         email: "williams@test.com",
         name: "Williams",
@@ -92,7 +92,7 @@ describe("AuthService", () => {
 
     it("should return JWT token on successful login", async () => {
       // Arrange — bcrypt hash of "Test1234!"
-      jest.mocked(findUserByEmail).mockResolvedValue({
+      vi.mocked(findUserByEmail).mockResolvedValue({
         id: "123",
         email: "williams@test.com",
         name: "Williams",
