@@ -10,21 +10,15 @@
 import request from "supertest"
 import app, { server } from "../../index.js"
 import { prisma } from "../../lib/prisma.js"
+import { createTestUser } from "../utils/auth.js"
 
 describe("Saving Goal Routes", () => {
   let token: string
 
-  const testUser = {
-    name: "Saving Goal Test User",
-    email: "saving-goal-test@test.com",
-    password: "Test1234!"
-  }
-
   beforeAll(async () => {
-    const response = await request(app)
-      .post("/api/auth/register")
-      .send(testUser)
-    token = response.body.token
+    // Register user and get token
+    const user = await createTestUser({ email: `saving-goal-${Date.now()}@test.com` })
+    token = user.token
   })
 
   afterAll(async () => {

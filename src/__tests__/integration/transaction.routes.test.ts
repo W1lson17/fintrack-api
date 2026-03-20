@@ -10,23 +10,16 @@
 import request from "supertest"
 import app, { server } from "../../index.js"
 import { prisma } from "../../lib/prisma.js"
+import { createTestUser } from "../utils/auth.js"
 
 describe("Transaction Routes", () => {
   let token: string
   let categoryId: string
 
-  const testUser = {
-    name: "Transaction Test User",
-    email: "transaction-test@test.com",
-    password: "Test1234!"
-  }
-
-  // Register user and create category once before all tests
   beforeAll(async () => {
-    const registerResponse = await request(app)
-      .post("/api/auth/register")
-      .send(testUser)
-    token = registerResponse.body.token
+    // Register user and get token
+    const user = await createTestUser({ email: `transaction-${Date.now()}@test.com` })
+    token = user.token
 
     // Create a category to use in transactions
     const categoryResponse = await request(app)
