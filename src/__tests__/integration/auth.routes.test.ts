@@ -18,6 +18,11 @@ describe("Auth Routes", () => {
     password: "Test1234!"
   }
 
+  afterAll(async () => {
+    await prisma.$disconnect()
+    await new Promise<void>(resolve => server.close(() => resolve()))
+  })
+
   describe("POST /api/auth/register", () => {
     it("should register a new user and return JWT token", async () => {
       // Act
@@ -105,11 +110,6 @@ describe("Auth Routes", () => {
       // Assert
       expect(response.status).toBe(401)
       expect(response.body.code).toBe("INVALID_CREDENTIALS")
-    })
-
-    afterAll(async () => {
-      await prisma.$disconnect()
-      await new Promise<void>(resolve => server.close(() => resolve()))
     })
   })
 })

@@ -23,12 +23,20 @@ const config: Config = {
     "!src/lib/logger.ts",
   ],
   transform: {
-  "^.+\\.tsx?$": ["ts-jest", {
-    tsconfig: {
-      isolatedModules: true
-    }
-  }]
-}
+    "^.+\\.tsx?$": ["ts-jest", {
+      tsconfig: {
+        isolatedModules: true
+      }
+    }]
+  },
+  coverageThreshold: {
+    global: {
+      lines: 80,
+      functions: 80,
+      branches: 80,
+      statements: 80,
+    },
+  },
 }
 
 export default config
