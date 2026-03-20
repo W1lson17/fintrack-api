@@ -1,13 +1,20 @@
+name: fintrack-dev
+
 services:
   postgres:
     image: postgres:18.3-alpine
-    container_name: fintrack-postgres
+    container_name: fintrack-postgres-dev
     env_file:
       - .env
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  postgres_data:
+  postgres_dev_data:

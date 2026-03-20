@@ -1,5 +1,7 @@
+name: fintrack-test
+
 services:
-  postgres-test:
+  postgres:
     image: postgres:18.3-alpine
     container_name: fintrack-postgres-test
     env_file:
