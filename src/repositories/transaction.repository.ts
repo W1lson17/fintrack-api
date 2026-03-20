@@ -60,7 +60,8 @@ export const findTransactionById = async (id: string) => {
  * Deletes a transaction by its ID
  */
 export const deleteTransactionById = async (id: string) => {
-  return prisma.transaction.delete({
+  const transaction = await prisma.transaction.delete({
     where: { id }
   })
+  return { ...transaction, amount: formatDecimal(transaction.amount) }
 }
