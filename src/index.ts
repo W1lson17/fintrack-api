@@ -13,12 +13,19 @@ import transactionRouter from "./routes/transaction.routes.js"
 import savingGoalsRouter from "./routes/saving-goal.routes.js"
 import reportsRouter from "./routes/report.routes.js"
 import { errorHandler } from "./middlewares/errorHandler.js"
+import { authLimiter, generalLimiter } from "./lib/rateLimiter.js"
 
 const app: Express = express()
 const PORT = process.env.PORT ?? 3000
 
 // Parse incoming requests with JSON payloads
 app.use(express.json())
+
+// Apply general rate limiter to all API routes
+app.use("/api", generalLimiter)
+
+// Apply stricter rate limiter to auth routes
+app.use("/api/auth", authLimiter)
 
 /**
  * API Routes
