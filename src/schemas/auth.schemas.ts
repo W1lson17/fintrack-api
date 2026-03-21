@@ -1,5 +1,20 @@
-import z from "zod";
+import z from "zod"
 
+/**
+ * Auth Schemas
+ *
+ * Zod schemas for validating authentication-related requests.
+ * Covers registration, login, token refresh and logout.
+ */
+
+/**
+ * Schema for user registration
+ *
+ * - name:     required, non-empty string
+ * - email:    valid email format
+ * - password: min 8, max 32 characters
+ *             must contain lowercase, uppercase, number and special character
+ */
 export const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.email("Invalid email address").min(1, "Email is required"),
@@ -12,10 +27,40 @@ export const registerSchema = z.object({
     .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character")
 })
 
+/**
+ * Schema for user login
+ *
+ * - email:    valid email format
+ * - password: non-empty string — strength validation happens at registration
+ */
 export const loginSchema = z.object({
   email: z.email("Invalid email address").min(1, "Email is required"),
   password: z.string().min(1, "Password is required")
 })
 
+/**
+ * Schema for refreshing an access token
+ *
+ * - refreshToken: required non-empty string
+ *                 validated against DB in service — not a JWT, just a UUID stored token
+ */
+export const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1, "Refresh token is required")
+})
+
+/**
+ * Schema for logout
+ *
+ * - refreshToken: required — used to identify and invalidate the current session
+ */
+export const logoutSchema = z.object({
+  refreshToken: z.string().min(1, "Refresh token is required")
+})
+
+/**
+ * Inferred TypeScript types from the schemas above.
+ */
 export type RegisterDto = z.infer<typeof registerSchema>
 export type LoginDto = z.infer<typeof loginSchema>
+export type RefreshTokenDto = z.infer<typeof refreshTokenSchema>
+export type LogoutDto = z.infer<typeof logoutSchema>
