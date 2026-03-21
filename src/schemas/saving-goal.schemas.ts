@@ -1,4 +1,5 @@
 import z from "zod"
+import { paginationSchema } from "./pagination.schemas.js"
 
 /**
  * Saving Goal Schemas
@@ -36,7 +37,14 @@ export const updateSavingGoalSchema = z.object({
 export const savingGoalParamsSchema = z.object({
   id: z.uuid("Invalid saving goal ID")
 })
+/**
+ * Schema for GET /saving-goals query parameters.
+ * Extends paginationSchema to include page and limit.
+ * Both fields are optional and default to page=1, limit=10.
+ */
+export const querySavingGoalsSchema = paginationSchema
 
 export type CreateSavingGoalDto = z.infer<typeof createSavingGoalSchema>
 export type UpdateSavingGoalDto = z.infer<typeof updateSavingGoalSchema>
 export type SavingGoalParamsDto = z.infer<typeof savingGoalParamsSchema>
+export type QuerySavingGoalsDto = z.infer<typeof querySavingGoalsSchema>

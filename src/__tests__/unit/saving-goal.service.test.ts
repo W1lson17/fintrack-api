@@ -69,15 +69,18 @@ describe("SavingGoalService", () => {
 
   describe("getSavingGoalsService", () => {
     it("should return all saving goals for a user", async () => {
-      // Arrange
-      vi.mocked(findSavingGoalsByUserId).mockResolvedValue([mockSavingGoal])
+      // Arrange — mock returns shape: { data, total }
+      vi.mocked(findSavingGoalsByUserId).mockResolvedValue({
+        data: [mockSavingGoal],
+        total: 1
+      })
 
       // Act
       const result = await getSavingGoalsService("user-123")
 
       // Assert
-      expect(result).toEqual([mockSavingGoal])
-      expect(findSavingGoalsByUserId).toHaveBeenCalledWith("user-123")
+      expect(result).toEqual({ data: [mockSavingGoal], total: 1 })
+      expect(findSavingGoalsByUserId).toHaveBeenCalledWith("user-123", undefined)
     })
   })
 

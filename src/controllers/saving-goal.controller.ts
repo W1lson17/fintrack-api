@@ -1,6 +1,6 @@
 import type { Request, Response } from "express"
 import * as savingGoalService from "../services/saving-goal.service.js"
-import type { CreateSavingGoalDto, SavingGoalParamsDto, UpdateSavingGoalDto } from "../schemas/saving-goal.schemas.js"
+import type { CreateSavingGoalDto, QuerySavingGoalsDto, SavingGoalParamsDto, UpdateSavingGoalDto } from "../schemas/saving-goal.schemas.js"
 
 /**
  * Saving Goal Controllers
@@ -25,12 +25,28 @@ export const createSavingGoal = async (
 
 /**
  * GET /api/saving-goals
- * Returns all saving goals for the authenticated user
+ * Returns a paginated list of saving goals for the authenticated user.
+ * Accepts optional query params: page, limit.
+ * Pagination params are validated and injected by validateRequest middleware via req.validated.
  */
 export const getSavingGoals = async (req: Request, res: Response) => {
   const userId = req.user!.id
-  const result = await savingGoalService.getSavingGoalsService(userId)
-  res.status(200).json(result)
+  const params = req.validated?.query as QuerySavingGoalsDto
+
+  const { data, total } = await savingGoalService.getSavingGoalsService(userId, params)
+
+  const page = params?.page ?? 1
+  const limit = params?.limit ?? 10
+
+  res.status(200).json({
+    data,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    }
+  })
 }
 
 /**

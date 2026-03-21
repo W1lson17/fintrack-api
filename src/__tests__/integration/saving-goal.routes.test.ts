@@ -65,7 +65,7 @@ describe("Saving Goal Routes", () => {
   })
 
   describe("GET /api/saving-goals", () => {
-    it("should return all saving goals for the user", async () => {
+    it("should return paginated saving goals for the user", async () => {
       // Act
       const response = await request(app)
         .get("/api/saving-goals")
@@ -73,7 +73,24 @@ describe("Saving Goal Routes", () => {
 
       // Assert
       expect(response.status).toBe(200)
-      expect(Array.isArray(response.body)).toBe(true)
+      expect(Array.isArray(response.body.data)).toBe(true)
+      expect(response.body.meta).toHaveProperty("total")
+      expect(response.body.meta).toHaveProperty("page")
+      expect(response.body.meta).toHaveProperty("limit")
+      expect(response.body.meta).toHaveProperty("totalPages")
+    })
+
+    it("should respect page and limit query params", async () => {
+      // Act
+      const response = await request(app)
+        .get("/api/saving-goals?page=1&limit=2")
+        .set("Authorization", `Bearer ${token}`)
+
+      // Assert
+      expect(response.status).toBe(200)
+      expect(response.body.data.length).toBeLessThanOrEqual(2)
+      expect(response.body.meta.page).toBe(1)
+      expect(response.body.meta.limit).toBe(2)
     })
   })
 

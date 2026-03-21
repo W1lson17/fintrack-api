@@ -1,6 +1,6 @@
 import { TransactionType } from "../lib/constants.js"
 import { prisma } from "../lib/prisma.js"
-import type { CreateCategoryDto } from "../schemas/category.schemas.js"
+import type { CreateCategoryDto, QueryCategoriesDto } from "../schemas/category.schemas.js"
 
 /**
  * Category Repository
@@ -35,12 +35,28 @@ export const findCategoryByNameAndType = async (
 /**
  * Retrieves all categories for a user
  * Ordered by creation date — most recent first
+ *
+ * Returns both the paginated data and the total count for meta calculation.
  */
-export const findCategoriesByUserId = async (userId: string) => {
-  return prisma.category.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" }
-  })
+export const findCategoriesByUserId = async (userId: string, params?: QueryCategoriesDto) => {
+  const page = params?.page ?? 1
+  const limit = params?.limit ?? 10
+  const skip = (page - 1) * limit
+
+  const where = { userId }
+
+  // Run both queries in parallel for efficiency
+  const [categories, total] = await Promise.all([
+    prisma.category.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit
+    }),
+    prisma.category.count({ where })
+  ])
+
+  return { data: categories, total }
 }
 
 /**

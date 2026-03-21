@@ -1,5 +1,6 @@
 import z from "zod"
 import { TRANSACTION_TYPES } from "../lib/constants.js"
+import { paginationSchema } from "./pagination.schemas.js"
 
 /**
  * Schema for creating a new transaction
@@ -25,13 +26,18 @@ export const transactionParamsSchema = z.object({
 })
 
 /**
- * Schema for filtering transactions via query params
- * All fields are optional — can filter by type, categoryId, or both
+ * Schema for GET /transactions query parameters.
+ *
+ * Merges existing filters with pagination:
+ * - type:       optional filter by INCOME or EXPENSE
+ * - categoryId: optional filter by category UUID
+ * - page:       page number, defaults to 1
+ * - limit:      records per page, defaults to 10, max 100
  */
 export const queryTransactionsSchema = z.object({
   type: z.enum(TRANSACTION_TYPES, { message: "Type must be INCOME or EXPENSE" }).optional(),
   categoryId: z.uuid("Invalid category ID").optional()
-})
+}).extend(paginationSchema.shape)
 
 export type CreateTransactionDto = z.infer<typeof createTransactionSchema>
 export type TransactionParamsDto = z.infer<typeof transactionParamsSchema>
