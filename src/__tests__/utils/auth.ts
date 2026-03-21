@@ -1,6 +1,5 @@
 import request from "supertest"
 import app from "../../index.js"
-import { AppError } from "../../lib/AppError.js"
 
 interface TestUserOverrides {
   name?: string
@@ -21,7 +20,8 @@ export async function createTestUser(overrides: TestUserOverrides = {}) {
     .send(user)
 
   return {
-    token: res.body.token,
-    user: res.body.user
+    // accessToken is the short-lived JWT used in Authorization headers
+    token: res.body.accessToken,
+    refreshToken: res.body.refreshToken
   }
 }
