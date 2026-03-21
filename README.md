@@ -1,9 +1,9 @@
 # Fintrack API
 
-A RESTful API for personal finance tracking built with Node.js, TypeScript, Express and Prisma ORM. Features JWT authentication, full CRUD operations for financial data, and monthly financial reports.
+A RESTful API for personal finance tracking built with Node.js, TypeScript, Express and Prisma ORM. Features JWT authentication with refresh token rotation, full CRUD operations for financial data, offset-based pagination, and monthly financial reports.
 
-[![Tests](https://img.shields.io/badge/tests-88%20passing-brightgreen)](#testing)
-[![Coverage](https://img.shields.io/badge/coverage-98.29%25-brightgreen)](#testing)
+[![Tests](https://img.shields.io/badge/tests-102%20passing-brightgreen)](#testing)
+[![Coverage](https://img.shields.io/badge/coverage-98.92%25-brightgreen)](#testing)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-24-green)](https://nodejs.org/)
 [![Vitest](https://img.shields.io/badge/Vitest-4-yellow)](https://vitest.dev/)
@@ -30,10 +30,12 @@ A RESTful API for personal finance tracking built with Node.js, TypeScript, Expr
 Fintrack API allows users to track their personal finances by managing income and expenses through categorized transactions, saving goals with progress tracking, and monthly financial reports with category breakdowns.
 
 **Key features:**
-- JWT authentication with secure password hashing
+- JWT access token (15m) + refresh token rotation (7d) with logout support
 - Full CRUD for categories, transactions and saving goals
+- Offset-based pagination on all list endpoints
 - Monthly income/expense summary with balance calculation
 - Spending breakdown by category
+- Rate limiting on auth and general endpoints
 - Input validation with Zod schemas
 - Three isolated Docker environments (dev, test, production)
 
@@ -50,6 +52,7 @@ Fintrack API allows users to track their personal finances by managing income an
 | PostgreSQL | 18 | Database |
 | Zod | 4 | Validation |
 | JWT + bcryptjs | — | Authentication |
+| express-rate-limit | — | Rate Limiting |
 | Vitest | 4 | Testing |
 | Supertest | 7 | Integration Testing |
 | Docker | — | Containerization |
@@ -60,7 +63,6 @@ Fintrack API allows users to track their personal finances by managing income an
 ## Architecture
 
 The project follows a **Layered Architecture** pattern with clear separation of concerns:
-
 ```
 ┌─────────────────────────────────────────────┐
 │              Routes + Controllers            │  ← HTTP layer
@@ -76,7 +78,6 @@ The project follows a **Layered Architecture** pattern with clear separation of 
 Each request flows through `validateRequest` middleware (Zod) → Controller → Service → Repository → Database. Errors bubble up through `AppError` and are handled by the global `errorHandler` middleware.
 
 ### Project Structure
-
 ```
 src/
 ├── __tests__/
@@ -106,7 +107,6 @@ src/
 - Docker and Docker Compose
 
 ### 1. Clone and install dependencies
-
 ```bash
 git clone https://github.com/W1lson17/fintrack-api
 cd fintrack-api
@@ -114,7 +114,6 @@ pnpm install
 ```
 
 ### 2. Set up environment variables
-
 ```bash
 cp .env.example .env
 cp .env.test.example .env.test
@@ -123,25 +122,21 @@ cp .env.test.example .env.test
 Fill in the required values in both files. See [Environment Variables](#environment-variables) for details.
 
 ### 3. Start the development database
-
 ```bash
 pnpm db:dev
 ```
 
 ### 4. Run database migrations
-
 ```bash
 pnpm db:migrate
 ```
 
 ### 5. Generate Prisma client
-
 ```bash
 pnpm db:generate
 ```
 
 ### 6. Start the development server
-
 ```bash
 pnpm dev
 ```
@@ -167,7 +162,6 @@ The API will be available at `http://localhost:<PORT>` where `PORT` is the value
 ### `.env.test` (test)
 
 Same variables as `.env` but pointing to the test database on port `5433`:
-
 ```env
 DATABASE_URL=postgresql://user:pass@localhost:5433/fintrack_test
 NODE_ENV=test
@@ -176,7 +170,6 @@ NODE_ENV=test
 ### `.env.production` (production)
 
 Same variables but with `DATABASE_URL` using the Docker internal hostname:
-
 ```env
 DATABASE_URL=postgresql://user:pass@postgres:5432/fintrack_prod
 NODE_ENV=production
@@ -222,16 +215,18 @@ NODE_ENV=production
 
 ## API Endpoints
 
-All authenticated endpoints require the `Authorization: Bearer <token>` header.
+All authenticated endpoints require the `Authorization: Bearer <accessToken>` header.
 
 ### Auth
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | `POST` | `/api/auth/register` | Register a new user | No |
-| `POST` | `/api/auth/login` | Login and receive JWT token | No |
+| `POST` | `/api/auth/login` | Login and receive tokens | No |
+| `POST` | `/api/auth/refresh` | Rotate refresh token | No |
+| `POST` | `/api/auth/logout` | Invalidate refresh token | No |
 
-**Register / Login request body:**
+**Register request body:**
 ```json
 {
   "name": "John Doe",
@@ -240,12 +235,37 @@ All authenticated endpoints require the `Authorization: Bearer <token>` header.
 }
 ```
 
-**Response:**
+**Register / Login response:**
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
+
+**Refresh request body:**
+```json
+{
+  "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Refresh response:**
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "661f9511-f30c-52e5-b827-557766551111"
+}
+```
+
+**Logout request body:**
+```json
+{
+  "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+> Refresh token rotation is enforced — each refresh token can only be used once. Access tokens expire in 15 minutes. Refresh tokens expire in 7 days.
 
 ---
 
@@ -254,7 +274,7 @@ All authenticated endpoints require the `Authorization: Bearer <token>` header.
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | `POST` | `/api/categories` | Create a category | Yes |
-| `GET` | `/api/categories` | Get all user categories | Yes |
+| `GET` | `/api/categories` | Get paginated categories | Yes |
 | `GET` | `/api/categories/:id` | Get category by ID | Yes |
 | `DELETE` | `/api/categories/:id` | Delete a category | Yes |
 
@@ -268,6 +288,26 @@ All authenticated endpoints require the `Authorization: Bearer <token>` header.
 
 Category types: `INCOME` | `EXPENSE`
 
+**Query params (GET /):**
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `page` | `number` | `1` | Page number (1-based) |
+| `limit` | `number` | `10` | Records per page (max: 100) |
+
+**Paginated response:**
+```json
+{
+  "data": [...],
+  "meta": {
+    "total": 45,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 5
+  }
+}
+```
+
 ---
 
 ### Transactions
@@ -275,7 +315,7 @@ Category types: `INCOME` | `EXPENSE`
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | `POST` | `/api/transactions` | Create a transaction | Yes |
-| `GET` | `/api/transactions` | Get all user transactions | Yes |
+| `GET` | `/api/transactions` | Get paginated transactions | Yes |
 | `GET` | `/api/transactions/:id` | Get transaction by ID | Yes |
 | `DELETE` | `/api/transactions/:id` | Delete a transaction | Yes |
 
@@ -290,12 +330,27 @@ Category types: `INCOME` | `EXPENSE`
 }
 ```
 
-**Query params (GET):**
+**Query params (GET /):**
 
-| Param | Type | Description |
-|-------|------|-------------|
-| `type` | `INCOME` \| `EXPENSE` | Filter by transaction type |
-| `categoryId` | `string` | Filter by category |
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `type` | `INCOME` \| `EXPENSE` | — | Filter by transaction type |
+| `categoryId` | `string` | — | Filter by category UUID |
+| `page` | `number` | `1` | Page number (1-based) |
+| `limit` | `number` | `10` | Records per page (max: 100) |
+
+**Paginated response:**
+```json
+{
+  "data": [...],
+  "meta": {
+    "total": 45,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 5
+  }
+}
+```
 
 ---
 
@@ -304,7 +359,7 @@ Category types: `INCOME` | `EXPENSE`
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | `POST` | `/api/saving-goals` | Create a saving goal | Yes |
-| `GET` | `/api/saving-goals` | Get all user saving goals | Yes |
+| `GET` | `/api/saving-goals` | Get paginated saving goals | Yes |
 | `GET` | `/api/saving-goals/:id` | Get saving goal by ID | Yes |
 | `PATCH` | `/api/saving-goals/:id` | Update saving goal progress | Yes |
 | `DELETE` | `/api/saving-goals/:id` | Delete a saving goal | Yes |
@@ -326,6 +381,26 @@ Category types: `INCOME` | `EXPENSE`
 ```
 
 The `amount` is added to `currentAmount`. Returns `400` if `currentAmount + amount` exceeds `targetAmount`.
+
+**Query params (GET /):**
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `page` | `number` | `1` | Page number (1-based) |
+| `limit` | `number` | `10` | Records per page (max: 100) |
+
+**Paginated response:**
+```json
+{
+  "data": [...],
+  "meta": {
+    "total": 45,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 5
+  }
+}
+```
 
 ---
 
@@ -379,7 +454,6 @@ The project has three completely isolated Docker environments, each with its own
 All three can run simultaneously without conflicts.
 
 ### Production Setup
-
 ```bash
 cp .env.production.example .env.production
 # Fill in production values
@@ -397,7 +471,6 @@ The project uses **Vitest** with two types of tests:
 **Unit tests** — test services and middlewares in isolation with mocked repositories. No database required.
 
 **Integration tests** — test the complete HTTP request/response cycle against a real PostgreSQL test database. Each test suite registers a unique user to avoid conflicts.
-
 ```bash
 # Start test database first
 pnpm db:test
@@ -414,10 +487,10 @@ pnpm test:coverage
 | Layer | Statements | Functions | Lines |
 |-------|-----------|-----------|-------|
 | Controllers | 100% | 100% | 100% |
-| Services | 98.27% | 100% | 98.93% |
+| Services | 98.59% | 100% | 99.15% |
 | Middlewares | 97.22% | 100% | 97.14% |
 | Lib | 100% | 100% | 100% |
-| **Global** | **98.29%** | **100%** | **99.04%** |
+| **Global** | **98.92%** | **100%** | **99.20%** |
 
 Coverage thresholds are enforced — the test suite fails if any metric drops below 80%.
 
@@ -426,7 +499,6 @@ Coverage thresholds are enforced — the test suite fails if any metric drops be
 ## Error Handling
 
 All errors follow a consistent JSON format:
-
 ```json
 {
   "code": "ERROR_CODE",
@@ -436,7 +508,6 @@ All errors follow a consistent JSON format:
 ```
 
 Validation errors include field-level details:
-
 ```json
 {
   "code": "VALIDATION_ERROR",
@@ -454,6 +525,8 @@ Validation errors include field-level details:
 | `VALIDATION_ERROR` | 400 | Request body/params failed Zod validation |
 | `UNAUTHORIZED` | 401 | Missing or invalid JWT token |
 | `INVALID_CREDENTIALS` | 401 | Wrong email or password |
+| `INVALID_REFRESH_TOKEN` | 401 | Refresh token does not exist or was already used |
+| `REFRESH_TOKEN_EXPIRED` | 401 | Refresh token has expired |
 | `EMAIL_ALREADY_EXISTS` | 409 | Email already registered |
 | `CATEGORY_NOT_FOUND` | 404 | Category does not exist or belongs to another user |
 | `CATEGORY_ALREADY_EXISTS` | 409 | Category with same name and type already exists |
