@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma.js"
 import { formatDecimal } from "../lib/formatters.js"
-import type { CreateSavingGoalDto, UpdateSavingGoalDto } from "../schemas/saving-goal.schemas.js"
+import type { CreateSavingGoalDto, QuerySavingGoalsDto, UpdateSavingGoalDto } from "../schemas/saving-goal.schemas.js"
 
 /**
  * Saving Goal Repository
@@ -23,13 +23,35 @@ export const createSavingGoal = async (data: CreateSavingGoalDto, userId: string
 /**
  * Retrieves all saving goals for a user
  * Ordered by creation date — most recent first
+ * 
+ * Returns both the paginated data and the total count for meta calculation.
  */
-export const findSavingGoalsByUserId = async (userId: string) => {
-  const goals = await prisma.savingGoal.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" }
-  })
-  return goals.map(goal => ({ ...goal, targetAmount: formatDecimal(goal.targetAmount), currentAmount: formatDecimal(goal.currentAmount) }))
+export const findSavingGoalsByUserId = async (userId: string, params?: QuerySavingGoalsDto) => {
+  const page = params?.page ?? 1
+  const limit = params?.limit ?? 10
+  const skip = (page - 1) * limit
+  
+  const where = { userId }
+
+  // Run both queries in parallel for efficiency
+  const [goals, total] = await Promise.all([
+    prisma.savingGoal.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit
+    }),
+    prisma.savingGoal.count({ where })
+  ])
+
+  return {
+    data: goals.map(goal => ({
+      ...goal,
+      targetAmount: formatDecimal(goal.targetAmount),
+      currentAmount: formatDecimal(goal.currentAmount)
+    })),
+    total
+  }
 }
 
 /**

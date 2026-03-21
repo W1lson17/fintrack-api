@@ -106,14 +106,17 @@ describe("TransactionService", () => {
 
   describe("getTransactionsService", () => {
     it("should return all transactions for a user", async () => {
-      // Arrange
-      vi.mocked(findTransactionsByUserId).mockResolvedValue([mockTransaction])
+      // Arrange — mock returns shape: { data, total }
+      vi.mocked(findTransactionsByUserId).mockResolvedValue({
+        data: [mockTransaction],
+        total: 1
+      })
 
       // Act
       const result = await getTransactionsService("user-123")
 
       // Assert
-      expect(result).toEqual([mockTransaction])
+      expect(result).toEqual({ data: [mockTransaction], total: 1 })
       expect(findTransactionsByUserId).toHaveBeenCalledWith("user-123", undefined)
     })
   })

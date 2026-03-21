@@ -7,7 +7,7 @@ import {
   findSavingGoalsByUserId,
   updateSavingGoalAmount
 } from "../repositories/saving-goal.repository.js"
-import type { CreateSavingGoalDto, UpdateSavingGoalDto } from "../schemas/saving-goal.schemas.js"
+import type { CreateSavingGoalDto, QuerySavingGoalsDto, UpdateSavingGoalDto } from "../schemas/saving-goal.schemas.js"
 
 /**
  * Saving Goal Service
@@ -24,10 +24,11 @@ export const createSavingGoalService = async (data: CreateSavingGoalDto, userId:
 }
 
 /**
- * Retrieves all saving goals for a user
+ * Retrieves a paginated list of saving goals for a user.
+ * Pagination params are optional — defaults applied at repository level.
  */
-export const getSavingGoalsService = async (userId: string) => {
-  return findSavingGoalsByUserId(userId)
+export const getSavingGoalsService = async (userId: string, params?: QuerySavingGoalsDto) => {
+  return findSavingGoalsByUserId(userId, params)
 }
 
 /**

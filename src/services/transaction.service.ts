@@ -31,7 +31,7 @@ export const createTransactionService = async (data: CreateTransactionDto, userI
 
 /**
  * Retrieves all transactions for a user with optional filters
- * Supports filtering by transaction type and/or category
+ * Pagination params are optional — defaults applied at repository level.
  */
 export const getTransactionsService = async (userId: string, filters?: QueryTransactionsDto) => {
   return findTransactionsByUserId(userId, filters)

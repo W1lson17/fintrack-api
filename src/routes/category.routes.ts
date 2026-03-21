@@ -2,7 +2,7 @@ import { Router } from "express"
 import { createCategory, deleteCategory, getCategories, getCategoryById } from "../controllers/category.controller.js"
 import { validateRequest } from "../middlewares/validateRequest.js"
 import { authenticateToken } from "../middlewares/auth.middleware.js"
-import { createCategorySchema, categoryParamsSchema } from "../schemas/category.schemas.js"
+import { createCategorySchema, categoryParamsSchema, queryCategoriesSchema } from "../schemas/category.schemas.js"
 
 const router: Router = Router()
 
@@ -16,8 +16,8 @@ const router: Router = Router()
 // Create a new category — validates request body
 router.post("/", authenticateToken, validateRequest({ body: createCategorySchema }), createCategory)
 
-// Get all categories for the authenticated user
-router.get("/", authenticateToken, getCategories)
+// Get all categories — validates and applies pagination query params
+router.get("/", authenticateToken, validateRequest({ query: queryCategoriesSchema }), getCategories)
 
 // Get a single category by ID — validates UUID format in params
 router.get("/:id", authenticateToken, validateRequest({ params: categoryParamsSchema }), getCategoryById)

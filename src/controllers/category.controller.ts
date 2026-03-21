@@ -1,6 +1,6 @@
 import type { Request, Response } from "express"
 import * as categoryService from "../services/category.service.js"
-import type { CreateCategoryDto, CategoryParamsDto } from "../schemas/category.schemas.js"
+import type { CreateCategoryDto, CategoryParamsDto, QueryCategoriesDto } from "../schemas/category.schemas.js"
 
 /**
  * Category Controllers
@@ -25,12 +25,28 @@ export const createCategory = async (
 
 /**
  * GET /api/categories
- * Returns all categories belonging to the authenticated user
+ * Returns a paginated list of categories for the authenticated user.
+ * Accepts optional query params: page, limit.
+ * Pagination params are validated and injected by validateRequest middleware via req.validated.
  */
 export const getCategories = async (req: Request, res: Response) => {
   const userId = req.user!.id
-  const result = await categoryService.getCategoriesService(userId)
-  res.status(200).json(result)
+  const params = req.validated?.query as QueryCategoriesDto
+
+  const { data, total } = await categoryService.getCategoriesService(userId, params)
+
+  const page = params?.page ?? 1
+  const limit = params?.limit ?? 10
+
+  res.status(200).json({
+    data,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    }
+  })
 }
 
 /**

@@ -1,5 +1,6 @@
 import z from "zod"
 import { TRANSACTION_TYPES } from "../lib/constants.js"
+import { paginationSchema } from "./pagination.schemas.js"
 
 /**
  * Category Schemas
@@ -27,5 +28,13 @@ export const categoryParamsSchema = z.object({
   id: z.uuid("Invalid category ID")
 })
 
+/**
+ * Schema for GET /categories query parameters.
+ * Extends paginationSchema to include page and limit.
+ * Both fields are optional and default to page=1, limit=10.
+ */
+export const queryCategoriesSchema = paginationSchema
+
 export type CreateCategoryDto = z.infer<typeof createCategorySchema>
 export type CategoryParamsDto = z.infer<typeof categoryParamsSchema>
+export type QueryCategoriesDto = z.infer<typeof queryCategoriesSchema>

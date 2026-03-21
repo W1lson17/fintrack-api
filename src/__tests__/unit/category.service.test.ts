@@ -73,15 +73,18 @@ describe("CategoryService", () => {
 
   describe("getCategoriesService", () => {
     it("should return all categories for a user", async () => {
-      // Arrange
-      vi.mocked(findCategoriesByUserId).mockResolvedValue([mockCategory])
+      // Arrange — mock returns shape: { data, total }
+      vi.mocked(findCategoriesByUserId).mockResolvedValue({
+        data: [mockCategory],
+        total: 1
+      })
 
       // Act
       const result = await getCategoriesService("user-123")
 
       // Assert
-      expect(result).toEqual([mockCategory])
-      expect(findCategoriesByUserId).toHaveBeenCalledWith("user-123")
+      expect(result).toEqual({ data: [mockCategory], total: 1 })
+      expect(findCategoriesByUserId).toHaveBeenCalledWith("user-123", undefined)
     })
   })
 

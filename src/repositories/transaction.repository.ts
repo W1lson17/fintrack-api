@@ -26,21 +26,36 @@ export const createTransaction = async (data: CreateTransactionDto, userId: stri
 
 /**
  * Retrieves all transactions for a user with optional filters
- * Supports filtering by transaction type and/or category
+ * Returns both the paginated data and the total count for meta calculation.
  */
 export const findTransactionsByUserId = async (userId: string, filters?: QueryTransactionsDto) => {
-  const transactions = await prisma.transaction.findMany({
-    where: {
-      userId,
-      // Only apply filters if provided
-      ...(filters?.type && { type: filters.type }),
-      ...(filters?.categoryId && { categoryId: filters.categoryId })
-    },
-    orderBy: { date: "desc" },
-    // Include category details in the response
-    include: { category: true }
-  })
-  return transactions.map(t => ({ ...t, amount: formatDecimal(t.amount) }))
+  const page = filters?.page ?? 1
+  const limit = filters?.limit ?? 10
+  const skip = (page - 1) * limit
+
+  // Build where clause explicitly
+  const where = {
+    userId,
+    ...(filters?.type && { type: filters.type }),
+    ...(filters?.categoryId && { categoryId: filters.categoryId })
+  }
+
+  // Run both queries in parallel for efficiency
+  const [transactions, total] = await Promise.all([
+    prisma.transaction.findMany({
+      where,
+      orderBy: { date: "desc" },
+      include: { category: true },
+      skip,
+      take: limit
+    }),
+    prisma.transaction.count({ where })
+  ])
+
+  return {
+    data: transactions.map(t => ({ ...t, amount: formatDecimal(t.amount) })),
+    total
+  }
 }
 
 /**

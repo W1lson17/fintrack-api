@@ -25,15 +25,28 @@ export const createTransaction = async (
 
 /**
  * GET /api/transactions
- * Returns all transactions for the authenticated user
- * Supports optional query filters: type, categoryId
+ * Returns a paginated list of transactions for the authenticated user.
+ * Accepts optional query params: type, categoryId, page, limit.
+ * All params are validated and injected by validateRequest middleware via req.validated.
  */
 export const getTransactions = async (req: Request, res: Response) => {
   const userId = req.user!.id
-  // Extract optional filters from query params
-  const filters = req.query as QueryTransactionsDto
-  const result = await transactionService.getTransactionsService(userId, filters)
-  res.status(200).json(result)
+  const filters = req.validated?.query as QueryTransactionsDto
+
+  const { data, total } = await transactionService.getTransactionsService(userId, filters)
+
+  const page = filters?.page ?? 1
+  const limit = filters?.limit ?? 10
+
+  res.status(200).json({
+    data,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    }
+  })
 }
 
 /**
