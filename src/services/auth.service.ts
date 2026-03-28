@@ -10,6 +10,7 @@ import {
 import type { RegisterDto, LoginDto, RefreshTokenDto, LogoutDto } from "../schemas/auth.schemas.js"
 import { AppError } from "../lib/AppError.js"
 import { ERROR_CODES } from "../lib/errorCodes.js"
+import { SALT_ROUNDS, ACCESS_TOKEN_EXPIRES_IN, REFRESH_TOKEN_EXPIRES_DAYS } from "../lib/constants.js"
 
 /**
  * Auth Service
@@ -19,10 +20,6 @@ import { ERROR_CODES } from "../lib/errorCodes.js"
  * - accessToken:  short-lived JWT (15 minutes), used on every request
  * - refreshToken: long-lived UUID (7 days), stored in DB, used only to rotate tokens
  */
-
-const SALT_ROUNDS = 10
-const ACCESS_TOKEN_EXPIRES_IN = "15m"
-const REFRESH_TOKEN_EXPIRES_DAYS = 7
 
 /**
  * Generates a short-lived JWT access token.
@@ -56,7 +53,6 @@ export const register = async (data: RegisterDto) => {
   const user = await createUser({ ...data, password: hashedPassword })
 
   const accessToken = generateAccessToken(user.id, user.email)
-  // crypto.randomUUID() is native in Node.js 18+ — no external dependency needed
   const refreshToken = crypto.randomUUID()
   await createRefreshToken(refreshToken, user.id, generateRefreshTokenExpiry())
 
@@ -95,14 +91,11 @@ export const refresh = async (data: RefreshTokenDto) => {
   const existing = await findRefreshToken(data.refreshToken)
   if (!existing) throw new AppError("Invalid refresh token", 401, ERROR_CODES.INVALID_REFRESH_TOKEN)
 
-  // Check if token has expired
   if (existing.expiresAt < new Date()) {
-    // Clean up expired token before throwing
     await deleteRefreshToken(data.refreshToken)
     throw new AppError("Refresh token has expired", 401, ERROR_CODES.REFRESH_TOKEN_EXPIRED)
   }
 
-  // Rotate — delete old token and issue new pair
   await deleteRefreshToken(data.refreshToken)
 
   const accessToken = generateAccessToken(existing.user.id, existing.user.email)
