@@ -2,7 +2,7 @@
 
 A RESTful API for personal finance tracking built with Node.js, TypeScript, Express and Prisma ORM. Features JWT authentication with refresh token rotation, full CRUD operations for financial data, offset-based pagination, and monthly financial reports.
 
-[![Tests](https://img.shields.io/badge/tests-102%20passing-brightgreen)](#testing)
+[![Tests](https://img.shields.io/badge/tests-125%20passing-brightgreen)](#testing)
 [![Coverage](https://img.shields.io/badge/coverage-98.92%25-brightgreen)](#testing)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-24-green)](https://nodejs.org/)
@@ -290,6 +290,57 @@ All authenticated endpoints require the `Authorization: Bearer <accessToken>` he
 
 ---
 
+### Users
+
+| Method   | Endpoint                 | Description                    | Auth |
+| -------- | ------------------------ | ------------------------------ | ---- |
+| `GET`    | `/api/users/me`          | Get authenticated user profile | Yes  |
+| `PATCH`  | `/api/users/me/name`     | Update user name               | Yes  |
+| `PATCH`  | `/api/users/me/password` | Change user password           | Yes  |
+| `DELETE` | `/api/users/me`          | Delete user account            | Yes  |
+
+**Update name request body:**
+
+```json
+{
+  "name": "John Doe"
+}
+```
+
+**Get profile response:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  }
+}
+```
+
+**Change password request body:**
+
+```json
+{
+  "currentPassword": "OldPass1!",
+  "newPassword": "NewPass1!"
+}
+```
+
+**Delete account request body:**
+
+```json
+{
+  "password": "CurrentPass1!"
+}
+```
+
+> Account deletion invalidates all active sessions before removing the account. Returns `204 No Content` on success.
+
+---
+
 ### Categories
 
 | Method   | Endpoint              | Description              | Auth |
@@ -560,6 +611,7 @@ Validation errors include field-level details:
 | `INVALID_REFRESH_TOKEN`   | 401    | Refresh token does not exist or was already used      |
 | `REFRESH_TOKEN_EXPIRED`   | 401    | Refresh token has expired                             |
 | `EMAIL_ALREADY_EXISTS`    | 409    | Email already registered                              |
+| `USER_NOT_FOUND`          | 404    | User does not exist                                   |
 | `CATEGORY_NOT_FOUND`      | 404    | Category does not exist or belongs to another user    |
 | `CATEGORY_ALREADY_EXISTS` | 409    | Category with same name and type already exists       |
 | `TRANSACTION_NOT_FOUND`   | 404    | Transaction does not exist or belongs to another user |
