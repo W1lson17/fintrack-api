@@ -13,6 +13,7 @@ import categoryRouter from "./routes/category.routes.js"
 import transactionRouter from "./routes/transaction.routes.js"
 import savingGoalsRouter from "./routes/saving-goal.routes.js"
 import reportsRouter from "./routes/report.routes.js"
+import userRouter from "./routes/user.routes.js"
 import { errorHandler } from "./middlewares/errorHandler.js"
 import { authLimiter, generalLimiter } from "./lib/rateLimiter.js"
 
@@ -55,6 +56,7 @@ app.use("/api/categories", categoryRouter)
 app.use("/api/transactions", transactionRouter)
 app.use("/api/saving-goals", savingGoalsRouter)
 app.use("/api/reports", reportsRouter)
+app.use("/api/users", userRouter)
 
 // 404 handler — must be registered after all routes
 app.use((_req, res) => {

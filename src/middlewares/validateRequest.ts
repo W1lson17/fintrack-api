@@ -30,7 +30,9 @@ export const validateRequest = (schemas: ValidationSchemas) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       if (schemas.body) {
-        req.body = schemas.body.parse(req.body)
+        const parsed = schemas.body.parse(req.body)
+        req.body = parsed
+        req.validated = { ...req.validated, body: parsed }
       }
       if (schemas.params) {
         req.params = schemas.params.parse(req.params) as Record<string, string>
