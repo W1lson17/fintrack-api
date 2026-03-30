@@ -69,27 +69,21 @@ export const forgotPasswordSchema = z.object({
 /**
  * Schema for resetting the password with a token
  *
- * - token:           the UUID token received via email
- * - newPassword:     min 8, max 32 characters, same strength rules as registration
- * - confirmPassword: must match newPassword — frontend only, not sent to API
+ * - token:       the UUID token received via email
+ * - newPassword: min 8, max 32 characters, same strength rules as registration
+ * Note: confirmPassword is validated client-side only — not sent to the API
  */
-export const resetPasswordSchema = z
-  .object({
-    token: z.string().min(1, "Reset token is required"),
-    newPassword: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .max(32, "Password must be less than 32 characters")
-      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/\d/, "Password must contain at least one number")
-      .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character"),
-    confirmPassword: z.string().min(1, "Please confirm your new password")
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"]
-  })
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Reset token is required"),
+  newPassword: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(32, "Password must be less than 32 characters")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/\d/, "Password must contain at least one number")
+    .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character")
+})
 
 /**
  * Inferred TypeScript types from the schemas above.
