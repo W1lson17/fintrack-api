@@ -1,6 +1,6 @@
 import type { Request, Response } from "express"
 import * as authService from "../services/auth.service.js"
-import type { RegisterDto, LoginDto, RefreshTokenDto, LogoutDto } from "../schemas/auth.schemas.js"
+import type { RegisterDto, LoginDto, RefreshTokenDto, LogoutDto, ForgotPasswordDto, ResetPasswordDto } from "../schemas/auth.schemas.js"
 
 /**
  * Auth Controllers
@@ -56,5 +56,33 @@ export const logout = async (
 ) => {
   await authService.logout(req.body)
   // 204 No Content — successful logout returns no body
+  res.status(204).send()
+}
+
+/**
+ * POST /api/auth/forgot-password
+ * Sends a password reset email to the user.
+ * Always returns 204 — prevents user enumeration attacks.
+ */
+export const forgotPassword = async (
+  req: Request<{}, {}, ForgotPasswordDto>,
+  res: Response
+) => {
+  await authService.forgotPassword(req.body)
+  // 204 No Content — always returns success to prevent user enumeration
+  res.status(204).send()
+}
+
+/**
+ * POST /api/auth/reset-password
+ * Resets the user's password using a valid reset token.
+ * Returns 204 No Content on success.
+ */
+export const resetPassword = async (
+  req: Request<{}, {}, ResetPasswordDto>,
+  res: Response
+) => {
+  await authService.resetPassword(req.body)
+  // 204 No Content — successful reset returns no body
   res.status(204).send()
 }
