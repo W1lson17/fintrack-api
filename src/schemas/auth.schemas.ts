@@ -4,7 +4,7 @@ import z from "zod"
  * Auth Schemas
  *
  * Zod schemas for validating authentication-related requests.
- * Covers registration, login, token refresh and logout.
+ * Covers registration, login, token refresh, logout and password reset.
  */
 
 /**
@@ -58,9 +58,45 @@ export const logoutSchema = z.object({
 })
 
 /**
+ * Schema for requesting a password reset
+ *
+ * - email: valid email format — used to find the account
+ */
+export const forgotPasswordSchema = z.object({
+  email: z.email("Invalid email address").min(1, "Email is required")
+})
+
+/**
+ * Schema for resetting the password with a token
+ *
+ * - token:           the UUID token received via email
+ * - newPassword:     min 8, max 32 characters, same strength rules as registration
+ * - confirmPassword: must match newPassword — frontend only, not sent to API
+ */
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1, "Reset token is required"),
+    newPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(32, "Password must be less than 32 characters")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/\d/, "Password must contain at least one number")
+      .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character"),
+    confirmPassword: z.string().min(1, "Please confirm your new password")
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"]
+  })
+
+/**
  * Inferred TypeScript types from the schemas above.
  */
 export type RegisterDto = z.infer<typeof registerSchema>
 export type LoginDto = z.infer<typeof loginSchema>
 export type RefreshTokenDto = z.infer<typeof refreshTokenSchema>
 export type LogoutDto = z.infer<typeof logoutSchema>
+export type ForgotPasswordDto = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordDto = z.infer<typeof resetPasswordSchema>
