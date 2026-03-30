@@ -28,6 +28,7 @@ model User {
   transactions Transaction[]
   savingGoals  SavingGoal[]
   refreshTokens RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model RefreshToken {
@@ -36,6 +37,16 @@ model RefreshToken {
   userId    String
   expiresAt DateTime @db.Timestamptz(6)
   createdAt DateTime @default(now()) @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  used      Boolean  @default(false)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
