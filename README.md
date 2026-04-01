@@ -36,6 +36,7 @@ Fintrack API allows users to track their personal finances by managing income an
 - Offset-based pagination on all list endpoints
 - Monthly income/expense summary with balance calculation
 - Spending breakdown by category
+- Password reset flow via email using Resend
 - Rate limiting on auth and general endpoints
 - Input validation with Zod schemas
 - CORS support for frontend integration
@@ -54,6 +55,7 @@ Fintrack API allows users to track their personal finances by managing income an
 | PostgreSQL         | 18      | Database              |
 | Zod                | 4       | Validation            |
 | JWT + bcryptjs     | —       | Authentication        |
+| Resend             | —       | Transactional Email   |
 | express-rate-limit | —       | Rate Limiting         |
 | cors               | —       | CORS Middleware       |
 | Vitest             | 4       | Testing               |
@@ -160,16 +162,18 @@ The API will be available at `http://localhost:<PORT>` where `PORT` is the value
 
 ### `.env` (development)
 
-| Variable            | Description                                      | Example                                          |
-| ------------------- | ------------------------------------------------ | ------------------------------------------------ |
-| `POSTGRES_USER`     | PostgreSQL username                              | `fintrack`                                       |
-| `POSTGRES_PASSWORD` | PostgreSQL password                              | `yourpassword`                                   |
-| `POSTGRES_DB`       | PostgreSQL database name                         | `fintrack`                                       |
-| `DATABASE_URL`      | Prisma connection string                         | `postgresql://user:pass@localhost:5432/fintrack` |
-| `PORT`              | Server port                                      | `3000`                                           |
-| `NODE_ENV`          | Environment                                      | `development`                                    |
-| `JWT_SECRET`        | JWT signing secret                               | `your-secret-key`                                |
-| `ALLOWED_ORIGINS`   | Comma-separated list of allowed frontend origins | `http://localhost:5173`                          |
+| Variable            | Description                                                                                                   | Example                                          |
+| ------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `POSTGRES_USER`     | PostgreSQL username                                                                                           | `fintrack`                                       |
+| `POSTGRES_PASSWORD` | PostgreSQL password                                                                                           | `yourpassword`                                   |
+| `POSTGRES_DB`       | PostgreSQL database name                                                                                      | `fintrack`                                       |
+| `DATABASE_URL`      | Prisma connection string                                                                                      | `postgresql://user:pass@localhost:5432/fintrack` |
+| `PORT`              | Server port                                                                                                   | `3000`                                           |
+| `NODE_ENV`          | Environment                                                                                                   | `development`                                    |
+| `JWT_SECRET`        | JWT signing secret                                                                                            | `your-secret-key`                                |
+| `RESEND_API_KEY`    | Resend API key for sending password reset emails                                                              | `re_xxxxxxxxx`                                   |
+| `FRONTEND_URL`      | Frontend URL used to build password reset links                                                               | `http://localhost:5173`                          |
+| `ALLOWED_ORIGINS`   | Comma-separated list of allowed frontend origins. Add `http://localhost` when running fintrack-web via Docker | `http://localhost:5173,http://localhost`         |
 
 ### `.env.test` (test)
 
@@ -188,7 +192,9 @@ Same variables but with `DATABASE_URL` using the Docker internal hostname:
 ```env
 DATABASE_URL=postgresql://user:pass@postgres:5432/fintrack_prod
 NODE_ENV=production
-ALLOWED_ORIGINS=https://your-domain.com
+RESEND_API_KEY=re_xxxxxxxxx
+FRONTEND_URL=https://your-frontend-domain.com
+ALLOWED_ORIGINS=http://localhost,https://your-frontend-domain.com
 ```
 
 > Use `.env.example`, `.env.test.example` and `.env.production.example` as templates.
@@ -235,12 +241,14 @@ All authenticated endpoints require the `Authorization: Bearer <accessToken>` he
 
 ### Auth
 
-| Method | Endpoint             | Description              | Auth |
-| ------ | -------------------- | ------------------------ | ---- |
-| `POST` | `/api/auth/register` | Register a new user      | No   |
-| `POST` | `/api/auth/login`    | Login and receive tokens | No   |
-| `POST` | `/api/auth/refresh`  | Rotate refresh token     | No   |
-| `POST` | `/api/auth/logout`   | Invalidate refresh token | No   |
+| Method | Endpoint                    | Description               | Auth |
+| ------ | --------------------------- | ------------------------- | ---- |
+| `POST` | `/api/auth/register`        | Register a new user       | No   |
+| `POST` | `/api/auth/login`           | Login and receive tokens  | No   |
+| `POST` | `/api/auth/refresh`         | Rotate refresh token      | No   |
+| `POST` | `/api/auth/logout`          | Invalidate refresh token  | No   |
+| `POST` | `/api/auth/forgot-password` | Send password reset email | No   |
+| `POST` | `/api/auth/reset-password`  | Reset password with token | No   |
 
 **Register request body:**
 
@@ -286,7 +294,26 @@ All authenticated endpoints require the `Authorization: Bearer <accessToken>` he
 }
 ```
 
+**Forgot password request body:**
+
+```json
+{
+  "email": "john@example.com"
+}
+```
+
+**Reset password request body:**
+
+```json
+{
+  "token": "550e8400-e29b-41d4-a716-446655440000",
+  "newPassword": "NewPass1!"
+}
+```
+
 > Refresh token rotation is enforced — each refresh token can only be used once. Access tokens expire in 15 minutes. Refresh tokens expire in 7 days.
+
+> Forgot password always returns 204 regardless of whether the email exists — prevents user enumeration. Reset tokens expire in 1 hour and are single-use.
 
 ---
 
@@ -606,6 +633,7 @@ Validation errors include field-level details:
 | Code                      | Status | Description                                           |
 | ------------------------- | ------ | ----------------------------------------------------- |
 | `VALIDATION_ERROR`        | 400    | Request body/params failed Zod validation             |
+| `INVALID_RESET_TOKEN`     | 400    | Reset token is invalid, expired or already used       |
 | `UNAUTHORIZED`            | 401    | Missing or invalid JWT token                          |
 | `INVALID_CREDENTIALS`     | 401    | Wrong email or password                               |
 | `INVALID_REFRESH_TOKEN`   | 401    | Refresh token does not exist or was already used      |
