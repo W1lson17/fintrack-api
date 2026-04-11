@@ -150,7 +150,7 @@ export const forgotPassword = async (data: ForgotPasswordDto) => {
   const token = crypto.randomUUID()
   await createPasswordResetToken(token, user.id, generatePasswordResetTokenExpiry())
 
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`
   await sendPasswordResetEmail(user.email, resetUrl)
 }
 
