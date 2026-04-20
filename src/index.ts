@@ -14,6 +14,7 @@ import transactionRouter from "./routes/transaction.routes.js"
 import savingGoalsRouter from "./routes/saving-goal.routes.js"
 import reportsRouter from "./routes/report.routes.js"
 import userRouter from "./routes/user.routes.js"
+import healthRouter from "./routes/health.routes.js"
 import { errorHandler } from "./middlewares/errorHandler.js"
 import { authLimiter, generalLimiter } from "./lib/rateLimiter.js"
 
@@ -57,6 +58,9 @@ app.use("/api/transactions", transactionRouter)
 app.use("/api/saving-goals", savingGoalsRouter)
 app.use("/api/reports", reportsRouter)
 app.use("/api/users", userRouter)
+
+// Health check routes (mounted at /)
+app.use('/', healthRouter)
 
 // 404 handler — must be registered after all routes
 app.use((_req, res) => {
