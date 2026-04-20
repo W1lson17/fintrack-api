@@ -14,7 +14,7 @@ import type { CreateCategoryDto, CategoryParamsDto, QueryCategoriesDto } from ".
  * Creates a new category for the authenticated user
  */
 export const createCategory = async (
-  req: Request<{}, {}, CreateCategoryDto>,
+  req: Request<object, object, CreateCategoryDto>,
   res: Response
 ) => {
   // Extract userId from JWT token — set by authenticateToken middleware

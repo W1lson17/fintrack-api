@@ -21,13 +21,13 @@ const mockRequest = (overrides = {}): Partial<Request> => ({
 
 const mockResponse = (): Partial<Response> => {
   const res: Partial<Response> = {}
-  res.status = vi.fn().mockReturnValue(res) as any
-  res.json = vi.fn().mockReturnValue(res) as any
-  res.send = vi.fn().mockReturnValue(res) as any
+  res.status = vi.fn().mockReturnValue(res) as Mock
+  res.json = vi.fn().mockReturnValue(res) as Mock
+  res.send = vi.fn().mockReturnValue(res) as Mock
   return res
 }
 
-const mockNext = (): NextFunction => vi.fn() as any
+const mockNext = (): NextFunction => vi.fn() as Mock
 
 // ─── validateRequest ────────────────────────────────────────────────────────
 
@@ -125,6 +125,7 @@ describe("errorHandler", () => {
 
 import { authenticateToken } from "../../middlewares/auth.middleware.js"
 import jwt from "jsonwebtoken"
+import { Mock } from "vitest"
 
 describe("authenticateToken", () => {
   beforeEach(() => {
@@ -158,7 +159,7 @@ describe("authenticateToken", () => {
   it("should call next() and set req.user if token is valid", () => {
     // Arrange
     const token = jwt.sign({ id: "user-123", email: "test@test.com" }, "test-secret-key")
-    const req = mockRequest({ headers: { authorization: `Bearer ${token}` } }) as any
+    const req = mockRequest({ headers: { authorization: `Bearer ${token}` } })
     const res = mockResponse()
     const next = mockNext()
 
