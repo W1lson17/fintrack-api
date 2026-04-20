@@ -7,6 +7,7 @@
 
 import "dotenv/config" // Must be first — loads env vars before any other import
 import express, { type Express } from "express"
+import expressStatusMonitor from "express-status-monitor"
 import cors from "cors"
 import authRouter from "./routes/auth.routes.js"
 import categoryRouter from "./routes/category.routes.js"
@@ -48,6 +49,9 @@ app.use("/api", generalLimiter)
 
 // Apply stricter rate limiter to auth routes
 app.use("/api/auth", authLimiter)
+
+// Status monitoring endpoint (/status) - for observability
+app.use(expressStatusMonitor({ path: '/status' }))
 
 /**
  * API Routes
