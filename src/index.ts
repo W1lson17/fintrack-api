@@ -7,6 +7,8 @@
 
 import "dotenv/config" // Must be first — loads env vars before any other import
 import express, { type Express } from "express"
+import expressStatusMonitor from "express-status-monitor"
+import helmet from "helmet"
 import cors from "cors"
 import authRouter from "./routes/auth.routes.js"
 import categoryRouter from "./routes/category.routes.js"
@@ -14,11 +16,16 @@ import transactionRouter from "./routes/transaction.routes.js"
 import savingGoalsRouter from "./routes/saving-goal.routes.js"
 import reportsRouter from "./routes/report.routes.js"
 import userRouter from "./routes/user.routes.js"
+import healthRouter from "./routes/health.routes.js"
+import { initShutdownHandlers } from "./lib/shutdown.js"
 import { errorHandler } from "./middlewares/errorHandler.js"
 import { authLimiter, generalLimiter } from "./lib/rateLimiter.js"
 
 const app: Express = express()
 const PORT = process.env.PORT ?? 3000
+
+// Security headers (helmet)
+app.use(helmet())
 
 /**
  * CORS configuration
@@ -47,6 +54,9 @@ app.use("/api", generalLimiter)
 // Apply stricter rate limiter to auth routes
 app.use("/api/auth", authLimiter)
 
+// Status monitoring endpoint (/status) - for observability
+app.use(expressStatusMonitor({ path: '/status' }))
+
 /**
  * API Routes
  * All routes are prefixed with /api
@@ -57,6 +67,9 @@ app.use("/api/transactions", transactionRouter)
 app.use("/api/saving-goals", savingGoalsRouter)
 app.use("/api/reports", reportsRouter)
 app.use("/api/users", userRouter)
+
+// Health check routes (mounted at /)
+app.use('/', healthRouter)
 
 // 404 handler — must be registered after all routes
 app.use((_req, res) => {
@@ -77,6 +90,9 @@ app.use(errorHandler)
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
+
+// Initialize graceful shutdown handlers
+initShutdownHandlers(server)
 
 export { server }
 export default app

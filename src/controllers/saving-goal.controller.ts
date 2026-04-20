@@ -14,7 +14,7 @@ import type { CreateSavingGoalDto, QuerySavingGoalsDto, SavingGoalParamsDto, Upd
  * Creates a new saving goal for the authenticated user
  */
 export const createSavingGoal = async (
-  req: Request<{}, {}, CreateSavingGoalDto>,
+  req: Request<object, object, CreateSavingGoalDto>,
   res: Response
 ) => {
   // Extract userId from JWT token — set by authenticateToken middleware
@@ -68,7 +68,7 @@ export const getSavingGoalById = async (
  * Validates that the new amount doesn't exceed the target
  */
 export const updateSavingGoal = async (
-  req: Request<SavingGoalParamsDto, {}, UpdateSavingGoalDto>,
+  req: Request<SavingGoalParamsDto, object, UpdateSavingGoalDto>,
   res: Response
 ) => {
   const userId = req.user!.id
