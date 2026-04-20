@@ -14,7 +14,7 @@ import type { RegisterDto, LoginDto, RefreshTokenDto, LogoutDto, ForgotPasswordD
  * Creates a new user account and returns access + refresh tokens.
  */
 export const register = async (
-  req: Request<{}, {}, RegisterDto>,
+  req: Request<object, object, RegisterDto>,
   res: Response
 ) => {
   const result = await authService.register(req.body)
@@ -26,7 +26,7 @@ export const register = async (
  * Authenticates a user and returns access + refresh tokens.
  */
 export const login = async (
-  req: Request<{}, {}, LoginDto>,
+  req: Request<object, object, LoginDto>,
   res: Response
 ) => {
   const result = await authService.login(req.body)
@@ -39,7 +39,7 @@ export const login = async (
  * Old refresh token is invalidated immediately after use.
  */
 export const refresh = async (
-  req: Request<{}, {}, RefreshTokenDto>,
+  req: Request<object, object, RefreshTokenDto>,
   res: Response
 ) => {
   const result = await authService.refresh(req.body)
@@ -51,7 +51,7 @@ export const refresh = async (
  * Invalidates the provided refresh token — ends the current session.
  */
 export const logout = async (
-  req: Request<{}, {}, LogoutDto>,
+  req: Request<object, object, LogoutDto>,
   res: Response
 ) => {
   await authService.logout(req.body)
@@ -65,7 +65,7 @@ export const logout = async (
  * Always returns 204 — prevents user enumeration attacks.
  */
 export const forgotPassword = async (
-  req: Request<{}, {}, ForgotPasswordDto>,
+  req: Request<object, object, ForgotPasswordDto>,
   res: Response
 ) => {
   await authService.forgotPassword(req.body)
@@ -79,7 +79,7 @@ export const forgotPassword = async (
  * Returns 204 No Content on success.
  */
 export const resetPassword = async (
-  req: Request<{}, {}, ResetPasswordDto>,
+  req: Request<object, object, ResetPasswordDto>,
   res: Response
 ) => {
   await authService.resetPassword(req.body)

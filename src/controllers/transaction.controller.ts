@@ -14,7 +14,7 @@ import type { CreateTransactionDto, TransactionParamsDto, QueryTransactionsDto }
  * Creates a new transaction for the authenticated user
  */
 export const createTransaction = async (
-  req: Request<{}, {}, CreateTransactionDto>,
+  req: Request<object, object, CreateTransactionDto>,
   res: Response
 ) => {
   // Extract userId from JWT token — set by authenticateToken middleware
