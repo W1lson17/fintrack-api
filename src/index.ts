@@ -15,6 +15,7 @@ import savingGoalsRouter from "./routes/saving-goal.routes.js"
 import reportsRouter from "./routes/report.routes.js"
 import userRouter from "./routes/user.routes.js"
 import healthRouter from "./routes/health.routes.js"
+import { initShutdownHandlers } from "./lib/shutdown.js"
 import { errorHandler } from "./middlewares/errorHandler.js"
 import { authLimiter, generalLimiter } from "./lib/rateLimiter.js"
 
@@ -81,6 +82,9 @@ app.use(errorHandler)
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
+
+// Initialize graceful shutdown handlers
+initShutdownHandlers(server)
 
 export { server }
 export default app
