@@ -8,6 +8,7 @@
 import "dotenv/config" // Must be first — loads env vars before any other import
 import express, { type Express } from "express"
 import expressStatusMonitor from "express-status-monitor"
+import helmet from "helmet"
 import cors from "cors"
 import authRouter from "./routes/auth.routes.js"
 import categoryRouter from "./routes/category.routes.js"
@@ -22,6 +23,9 @@ import { authLimiter, generalLimiter } from "./lib/rateLimiter.js"
 
 const app: Express = express()
 const PORT = process.env.PORT ?? 3000
+
+// Security headers (helmet)
+app.use(helmet())
 
 /**
  * CORS configuration
